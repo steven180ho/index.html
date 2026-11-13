@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>報價試算與核准門檻檢核工具（離線版）</title>
+  <style>
+    :root {
+      --bg-page: #f4f6f9;
+      --bg-card: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger-bg: #fef2f2;
+      --danger-border: #f87171;
+      --danger-text: #b91c1c;
+      --success-bg: #f0fdf4;
+      --success-border: #4ade80;
+      --success-text: #15803d;
+      --warn-bg: #fffbeb;
+      --warn-border: #fbbf24;
+      --warn-text: #b45309;
+      --neutral-bg: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .badge-disclaimer {
+      font-size: 0.8rem;
+      background-color: #e2e8f0;
+      color: #475569;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      background-color: #fff;
+      transition: border-color 0.15s;
+    }
+
+    select:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background-color: var(--neutral-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      margin-bottom: 0;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .divider {
+      height: 1px;
+      background-color: #e2e8f0;
+      margin: 18px 0;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.15s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+      flex: 2;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: #334155;
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      background-color: #cbd5e1;
+    }
+
+    .preset-bar {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .preset-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .preset-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .btn-preset {
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+
+    .btn-preset:hover {
+      background-color: #e2e8f0;
+    }
+
+    /* 訊息與結果區塊 */
+    .alert-box {
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid;
+      margin-bottom: 16px;
+      font-size: 0.92rem;
+    }
+
+    .alert-error {
+      background-color: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .alert-warn {
+      background-color: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+
+    .alert-success {
+      background-color: var(--success-bg);
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+
+    .alert-neutral {
+      background-color: var(--neutral-bg);
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+
+    .alert-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-box {
+      background-color: var(--neutral-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .metric-box.highlight {
+      border-color: var(--primary);
+      background-color: #eff6ff;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--neutral-bg);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr.total-row td {
+      font-weight: 700;
+      border-top: 2px solid var(--border);
+      border-bottom: none;
+      background-color: var(--neutral-bg);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 批次處理區塊樣式 */
+    .batch-section {
+      margin-top: 24px;
+    }
+
+    .batch-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .file-input-wrapper {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px dashed var(--primary);
+      border-radius: 8px;
+      background-color: #eff6ff;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .batch-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+    }
+
+    .stat-pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background-color: var(--neutral-bg);
+    }
+
+    .stat-pill.ok {
+      background-color: var(--success-bg);
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+
+    .stat-pill.warn {
+      background-color: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+
+    .stat-pill.err {
+      background-color: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-ok { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+    .badge-warn { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+    .badge-err { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
+    .badge-neutral { background: var(--neutral-bg); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .btn-print {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-size: 0.82rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-print:hover {
+      background-color: #334155;
+    }
+
+    .print-header-info {
+      display: none;
+    }
+
+    /* 列印 / 另存 PDF 專用樣式檢查與防溢位設定 */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11pt !important;
+        color: #0f172a !important;
+      }
+
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+
+      /* 隱藏所有操作按鈕、輸入表單、檔案上傳框與提示 */
+      button,
+      .btn-print,
+      .preset-bar,
+      .batch-toolbar,
+      #batchHelpText,
+      section[aria-label="報價條件輸入"] {
+        display: none !important;
+      }
+
+      /* 根據列印模式切換單筆或批次顯示 */
+      body.print-single .batch-section {
+        display: none !important;
+      }
+
+      body.print-batch .grid {
+        display: none !important;
+      }
+
+      .grid {
+        display: block !important;
+      }
+
+      .card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      header {
+        border-bottom: 2px solid #1e293b !important;
+        margin-bottom: 14px !important;
+        padding-bottom: 8px !important;
+      }
+
+      .print-header-info {
+        display: block !important;
+        font-size: 8.5pt;
+        color: #475569;
+        margin-bottom: 10px;
+      }
+
+      /* 確保表格與文字完全在紙張寬度內，絕不裁切或溢出 */
+      .table-responsive {
+        overflow: visible !important;
+        border: 1px solid #cbd5e1 !important;
+        width: 100% !important;
+      }
+
+      table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        font-size: 8.5pt !important;
+      }
+
+      th, td {
+        padding: 6px 5px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        vertical-align: top !important;
+      }
+
+      /* 批次表格在 A4 紙張下的黃金比例欄寬分配（總和 100%） */
+      body.print-batch table th:nth-child(1),
+      body.print-batch table td:nth-child(1) { width: 12%; }
+      body.print-batch table th:nth-child(2),
+      body.print-batch table td:nth-child(2) { width: 22%; }
+      body.print-batch table th:nth-child(3),
+      body.print-batch table td:nth-child(3) { width: 9%; }
+      body.print-batch table th:nth-child(4),
+      body.print-batch table td:nth-child(4) { width: 12%; }
+      body.print-batch table th:nth-child(5),
+      body.print-batch table td:nth-child(5) { width: 12%; }
+      body.print-batch table th:nth-child(6),
+      body.print-batch table td:nth-child(6) { width: 16%; }
+      body.print-batch table th:nth-child(7),
+      body.print-batch table td:nth-child(7) { width: 17%; }
+
+      .badge-status {
+        white-space: normal !important;
+        line-height: 1.3 !important;
+      }
+
+      /* 防止表格列與摘要卡片跨頁時被從中間切斷 */
+      tr, .metric-box, .alert-box {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      thead {
+        display: table-header-group !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>虛構報價與核准門檻檢核工具</h1>
+        <div class="print-header-info" id="printTimestamp"></div>
+      </div>
+      <span class="badge-disclaimer">教學與模擬專用・非公司政策或稅務建議</span>
+    </header>
+
+    <div class="grid">
+      <!-- 左側：輸入區 -->
+      <section class="card" aria-label="報價條件輸入">
+        <div class="card-title">
+          <span>1. 報價條件設定</span>
+        </div>
+
+        <form id="quoteForm" novalidate>
+          <div class="form-group">
+            <label for="planFee">月費方案 <span class="hint">(必選，限指定方案)</span></label>
+            <select id="planFee">
+              <option value="">-- 請選擇月費方案 --</option>
+              <option value="30000">基礎方案 — NT$ 30,000 / 月</option>
+              <option value="60000">進階方案 — NT$ 60,000 / 月</option>
+              <option value="100000">客製方案 — NT$ 100,000 / 月</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="months">合約期間（月數） <span class="hint">(限 3、6、12 個月)</span></label>
+            <select id="months">
+              <option value="">-- 請選擇期間 --</option>
+              <option value="3">3 個月</option>
+              <option value="6">6 個月</option>
+              <option value="12">12 個月</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="discount">基本折扣 (%) <span class="hint">(0% 至 30%，例如輸入 10 代表 10% off)</span></label>
+            <input type="number" id="discount" min="0" max="30" step="0.01" value="0" placeholder="請輸入 0 ~ 30" />
+          </div>
+
+          <div class="form-group">
+            <label for="paymentFreq">付款方式 <span class="hint">(年付僅限 12 個月期間)</span></label>
+            <select id="paymentFreq">
+              <option value="monthly">月付（期數 = 月數）</option>
+              <option value="quarterly">季付（期數 = 月數 ÷ 3）</option>
+              <option value="annual">年付（限 12 個月，享額外 0.97 折，共 1 期）</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="includeTax" />
+              <label for="includeTax">含示範稅（稅率 5%，總額 × 1.05）</label>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="form-group">
+            <label for="approvalLimit">核准上限（NT$） <span class="hint">(選填，留空則不比對；不影響報價金額)</span></label>
+            <input type="number" id="approvalLimit" min="0" step="1" placeholder="例如：300000（可留空）" />
+          </div>
+
+          <div class="btn-row">
+            <button type="submit" class="btn-primary">計算報價與檢核</button>
+            <button type="button" id="resetBtn" class="btn-secondary">清空重設</button>
+          </div>
+        </form>
+
+        <!-- 回歸測試案例快速帶入 -->
+        <div class="preset-bar">
+          <div class="preset-title">快速帶入驗證案例（測試規則與邊界）：</div>
+          <div class="preset-buttons">
+            <button type="button" class="btn-preset" data-preset="q01">Q01/Q11 基礎3月無折扣</button>
+            <button type="button" class="btn-preset" data-preset="q04">Q04/Q10 超過30萬案例</button>
+            <button type="button" class="btn-preset" data-preset="tail">尾差測試（10萬/3月/季付?改月付10%折）</button>
+            <button type="button" class="btn-preset" data-preset="errAnnual">錯誤測試（年付配6個月）</button>
+            <button type="button" class="btn-preset" data-preset="errDisc">錯誤測試（折扣35%超範圍）</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 右側：結果與檢核區 -->
+      <section class="card" aria-label="報價計算結果">
+        <div class="card-title">
+          <span>2. 計算結果與核准檢核</span>
+          <button type="button" id="printSingleBtn" class="btn-print hidden">🖨️ 列印 / 另存 PDF</button>
+        </div>
+
+        <!-- 錯誤訊息容器（輸入無效時顯示，並隱藏下方結果） -->
+        <div id="errorBox" class="alert-box alert-error hidden" role="alert">
+          <span class="alert-title">無法產生有效報價</span>
+          <span id="errorMessage"></span>
+        </div>
+
+        <!-- 初始引導訊息 -->
+        <div id="emptyState" class="alert-box alert-neutral">
+          <span class="alert-title">等待輸入條件</span>
+          請在左側設定有效的月費方案、期間與折扣後，點擊「計算報價與檢核」。
+        </div>
+
+        <!-- 有效報價結果容器 -->
+        <div id="resultContainer" class="hidden">
+          <!-- 核准上限狀態橫幅 -->
+          <div id="approvalBanner" class="alert-box">
+            <span class="alert-title" id="approvalTitle"></span>
+            <div id="approvalDetail"></div>
+          </div>
+
+          <!-- 稅前與含稅總額卡片 -->
+          <div class="summary-grid">
+            <div class="metric-box" id="preTaxBox">
+              <div class="metric-label">稅前總額（四捨五入整元）</div>
+              <div class="metric-value" id="preTaxValue">NT$ 0</div>
+              <div class="metric-sub" id="formulaNote"></div>
+            </div>
+            <div class="metric-box" id="postTaxBox">
+              <div class="metric-label">含稅總額（× 1.05 示範稅）</div>
+              <div class="metric-value" id="postTaxValue">NT$ 0</div>
+              <div class="metric-sub" id="taxStatusNote"></div>
+            </div>
+          </div>
+
+          <!-- 分期明細表 -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+              <strong style="font-size: 0.95rem;">分期付款明細</strong>
+              <span class="hint" id="installmentSummary"></span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>期別</th>
+                  <th>計算方式說明</th>
+                  <th class="num">應付金額 (NT$)</th>
+                </tr>
+              </thead>
+              <tbody id="installmentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 下方：CSV 批次處理區塊 -->
+    <section class="card batch-section" aria-label="CSV 批次報價處理">
+      <div class="card-title">
+        <span>3. CSV 批次報價與檢核處理（完全離線執行）</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="hint">支援欄位：月費、月數、折扣(%)、付款方式、含稅、核准上限</span>
+          <button type="button" id="printBatchBtn" class="btn-print hidden">🖨️ 列印 / 另存 PDF</button>
+        </div>
+      </div>
+
+      <div class="batch-toolbar">
+        <div class="file-input-wrapper">
+          <input type="file" id="csvFileInput" accept=".csv,text/csv" aria-label="選擇 CSV 檔案" />
+        </div>
+        <button type="button" id="downloadTemplateBtn" class="btn-secondary" style="flex: initial;">下載 CSV 範本</button>
+        <button type="button" id="exportCsvBtn" class="btn-primary hidden" style="flex: initial;">匯出批次結果 CSV</button>
+      </div>
+
+      <div id="batchHelpText" class="alert-box alert-neutral" style="margin-bottom: 0;">
+        <span class="alert-title">CSV 欄位格式說明（支援自動偵測標題列）</span>
+        工具會自動根據第一列標題名稱對應欄位，支援包含或不包含「案例編號」的格式：<br>
+        ・常見格式 A：<code>案例編號,月費,月數,折扣,付款方式,含稅,核准上限</code>（或英文 <code>id,fee,months,discount,freq,tax,limit</code>）<br>
+        ・常見格式 B：<code>月費,月數,折扣,付款方式,含稅,核准上限</code><br>
+        ・付款方式支援：<code>月付/month/monthly</code>、<code>季付/quarter/quarterly</code>、<code>年付/year/annual</code>；含稅支援：<code>是/true/1</code> 或 <code>否/false/0</code>。
+      </div>
+
+      <div id="batchResultArea" class="hidden" style="margin-top: 14px;">
+        <div class="batch-stats" id="batchStats"></div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>列號 / 編號</th>
+                <th>輸入條件摘要</th>
+                <th>有效性</th>
+                <th class="num">稅前總額</th>
+                <th class="num">含稅總額</th>
+                <th>分期明細</th>
+                <th>核准狀態 / 錯誤原因</th>
+              </tr>
+            </thead>
+            <tbody id="batchTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      // 允許的合法常數清單
+      const VALID_FEES = [30000, 60000, 100000];
+      const VALID_MONTHS = [3, 6, 12];
+      let latestBatchResults = [];
+
+      // DOM 元素參照
+      const form = document.getElementById("quoteForm");
+      const planFeeEl = document.getElementById("planFee");
+      const monthsEl = document.getElementById("months");
+      const discountEl = document.getElementById("discount");
+      const paymentFreqEl = document.getElementById("paymentFreq");
+      const includeTaxEl = document.getElementById("includeTax");
+      const approvalLimitEl = document.getElementById("approvalLimit");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const errorBox = document.getElementById("errorBox");
+      const errorMessage = document.getElementById("errorMessage");
+      const emptyState = document.getElementById("emptyState");
+      const resultContainer = document.getElementById("resultContainer");
+
+      const approvalBanner = document.getElementById("approvalBanner");
+      const approvalTitle = document.getElementById("approvalTitle");
+      const approvalDetail = document.getElementById("approvalDetail");
+
+      const preTaxBox = document.getElementById("preTaxBox");
+      const postTaxBox = document.getElementById("postTaxBox");
+      const preTaxValue = document.getElementById("preTaxValue");
+      const postTaxValue = document.getElementById("postTaxValue");
+      const formulaNote = document.getElementById("formulaNote");
+      const taxStatusNote = document.getElementById("taxStatusNote");
+
+      const installmentSummary = document.getElementById("installmentSummary");
+      const installmentBody = document.getElementById("installmentBody");
+
+      // 批次處理 DOM 參照
+      const csvFileInput = document.getElementById("csvFileInput");
+      const downloadTemplateBtn = document.getElementById("downloadTemplateBtn");
+      const exportCsvBtn = document.getElementById("exportCsvBtn");
+      const batchResultArea = document.getElementById("batchResultArea");
+      const batchStats = document.getElementById("batchStats");
+      const batchTableBody = document.getElementById("batchTableBody");
+      const printSingleBtn = document.getElementById("printSingleBtn");
+      const printBatchBtn = document.getElementById("printBatchBtn");
+      const printTimestamp = document.getElementById("printTimestamp");
+
+      // 列印 / 另存 PDF 控制函式
+      function triggerPrint(mode) {
+        const now = new Date();
+        printTimestamp.textContent = `列印時間：${now.toLocaleString("zh-TW")} ｜ 模式：${mode === "single" ? "單筆報價試算明細" : "CSV 批次報價檢核總表"}`;
+        document.body.classList.remove("print-single", "print-batch");
+        document.body.classList.add(mode === "single" ? "print-single" : "print-batch");
+        window.print();
+      }
+
+      printSingleBtn.addEventListener("click", () => triggerPrint("single"));
+      printBatchBtn.addEventListener("click", () => triggerPrint("batch"));
+
+      window.addEventListener("afterprint", () => {
+        document.body.classList.remove("print-single", "print-batch");
+      });
+
+      // 金額格式化輔助函式
+      function formatTWD(num) {
+        return "NT$ " + num.toLocaleString("zh-TW");
+      }
+
+      // 清除舊結果並顯示錯誤原因
+      function showInvalidState(reason) {
+        resultContainer.classList.add("hidden");
+        emptyState.classList.add("hidden");
+        printSingleBtn.classList.add("hidden");
+        installmentBody.innerHTML = "";
+        errorMessage.textContent = reason;
+        errorBox.classList.remove("hidden");
+      }
+
+      /**
+       * 核心報價與檢核純函式（供單筆與 CSV 批次共同呼叫）
+       * @param {Object} rawInput - { rawFee, rawMonths, rawDiscount, rawFreq, rawTax, rawLimit }
+       */
+      function evaluateQuote(rawInput) {
+        const rawFee = String(rawInput.rawFee ?? "").trim();
+        const rawMonths = String(rawInput.rawMonths ?? "").trim();
+        const rawDiscount = String(rawInput.rawDiscount ?? "").trim();
+        const rawFreq = String(rawInput.rawFreq ?? "").trim().toLowerCase();
+        const rawLimit = String(rawInput.rawLimit ?? "").trim();
+
+        // 解析付款方式（支援中文、完整英文與簡寫 month/quarter/year）
+        let freq = "";
+        let freqLabel = "";
+        if (["monthly", "month", "月付", "月"].includes(rawFreq)) {
+          freq = "monthly";
+          freqLabel = "月付";
+        } else if (["quarterly", "quarter", "季付", "季"].includes(rawFreq)) {
+          freq = "quarterly";
+          freqLabel = "季付";
+        } else if (["annual", "annually", "year", "yearly", "年付", "年"].includes(rawFreq)) {
+          freq = "annual";
+          freqLabel = "年付";
+        }
+
+        // 解析是否含稅（支援布林值與中英文文字）
+        let isTaxIncluded = false;
+        if (typeof rawInput.rawTax === "boolean") {
+          isTaxIncluded = rawInput.rawTax;
+        } else {
+          const taxStr = String(rawInput.rawTax ?? "").trim().toLowerCase();
+          if (["true", "1", "yes", "y", "是", "含稅"].includes(taxStr)) {
+            isTaxIncluded = true;
+          } else if (["false", "0", "no", "n", "否", "未稅", ""].includes(taxStr)) {
+            isTaxIncluded = false;
+          } else {
+            return { valid: false, error: `含稅欄位格式無效（"${rawInput.rawTax}"），請填 是/否 或 true/false。` };
+          }
+        }
+
+        // 1. 檢查空值與數字型別
+        if (rawFee === "") {
+          return { valid: false, error: "月費不可為空值。" };
+        }
+        const fee = Number(rawFee);
+        if (!Number.isFinite(fee) || fee < 0 || !VALID_FEES.includes(fee)) {
+          return { valid: false, error: "月費無效：不可為負數，且僅限 30,000、60,000、100,000。" };
+        }
+
+        if (rawMonths === "") {
+          return { valid: false, error: "合約期間不可為空值。" };
+        }
+        const months = Number(rawMonths);
+        if (!VALID_MONTHS.includes(months)) {
+          return { valid: false, error: "期間錯誤：期間只能選擇 3、6 或 12 個月。" };
+        }
+
+        if (rawDiscount === "") {
+          return { valid: false, error: "基本折扣不可為空值（請輸入 0 ~ 30）。" };
+        }
+        const discountPct = Number(rawDiscount);
+        if (!Number.isFinite(discountPct) || discountPct < 0 || discountPct > 30) {
+          return { valid: false, error: "折扣超出範圍：基本折扣必須介於 0% 至 30% 之間。" };
+        }
+
+        if (!freq) {
+          return { valid: false, error: `付款方式無效（"${rawInput.rawFreq}"），請填 月付、季付 或 年付。` };
+        }
+
+        // 年付規則：年付僅限 12 個月
+        if (freq === "annual" && months !== 12) {
+          return { valid: false, error: "付款方式與期間衝突：選擇「年付」時，合約期間必須為 12 個月。" };
+        }
+
+        // 檢查核准上限若非空值時的合法性
+        let approvalLimit = null;
+        if (rawLimit !== "") {
+          approvalLimit = Number(rawLimit);
+          if (!Number.isFinite(approvalLimit) || approvalLimit < 0) {
+            return { valid: false, error: "核准上限格式錯誤：請輸入大於或等於 0 的金額，或保持空白。" };
+          }
+        }
+
+        // 2. 報價公式計算
+        const discountRate = discountPct / 100;
+        const annualFactor = (freq === "annual") ? 0.97 : 1.0;
+        const rawPreTax = fee * months * (1 - discountRate) * annualFactor;
+        const preTaxTotal = Math.round(rawPreTax);
+        const postTaxTotal = Math.round(rawPreTax * 1.05);
+        const activeQuoteTotal = isTaxIncluded ? postTaxTotal : preTaxTotal;
+
+        // 3. 分期方式與尾差處理
+        let installmentsCount = 1;
+        if (freq === "monthly") installmentsCount = months;
+        else if (freq === "quarterly") installmentsCount = months / 3;
+        else if (freq === "annual") installmentsCount = 1;
+
+        const baseInstallment = Math.floor(activeQuoteTotal / installmentsCount);
+        const schedule = [];
+        let accumulated = 0;
+
+        for (let i = 1; i <= installmentsCount; i++) {
+          if (i < installmentsCount) {
+            schedule.push({
+              period: i,
+              amount: baseInstallment,
+              note: "整數下界 ⌊總額 ÷ 期數⌋"
+            });
+            accumulated += baseInstallment;
+          } else {
+            const finalAmount = activeQuoteTotal - accumulated;
+            const hasTailDiff = (installmentsCount > 1 && finalAmount !== baseInstallment);
+            schedule.push({
+              period: i,
+              amount: finalAmount,
+              note: installmentsCount === 1
+                ? "一次付清"
+                : (hasTailDiff ? "末期補尾差（確保合計等於總額）" : "整除無尾差")
+            });
+          }
+        }
+
+        // 4. 核准門檻獨立檢查
+        let approvalStatus = "none"; // "none" | "within" | "exceeded"
+        let approvalDiff = 0;
+        if (approvalLimit !== null) {
+          if (activeQuoteTotal > approvalLimit) {
+            approvalStatus = "exceeded";
+            approvalDiff = activeQuoteTotal - approvalLimit;
+          } else {
+            approvalStatus = "within";
+            approvalDiff = approvalLimit - activeQuoteTotal;
+          }
+        }
+
+        return {
+          valid: true,
+          fee,
+          months,
+          discountPct,
+          freq,
+          freqLabel,
+          isTaxIncluded,
+          approvalLimit,
+          preTaxTotal,
+          postTaxTotal,
+          activeQuoteTotal,
+          installmentsCount,
+          schedule,
+          approvalStatus,
+          approvalDiff
+        };
+      }
+
+      // 單筆畫面計算與渲染
+      function calculateQuote() {
+        const res = evaluateQuote({
+          rawFee: planFeeEl.value,
+          rawMonths: monthsEl.value,
+          rawDiscount: discountEl.value,
+          rawFreq: paymentFreqEl.value,
+          rawTax: includeTaxEl.checked,
+          rawLimit: approvalLimitEl.value
+        });
+
+        if (!res.valid) {
+          return showInvalidState(res.error);
+        }
+
+        // 渲染畫面結果
+        errorBox.classList.add("hidden");
+        emptyState.classList.add("hidden");
+        resultContainer.classList.remove("hidden");
+        printSingleBtn.classList.remove("hidden");
+
+        preTaxValue.textContent = formatTWD(res.preTaxTotal);
+        postTaxValue.textContent = formatTWD(res.postTaxTotal);
+
+        formulaNote.textContent = res.freq === "annual"
+          ? `含年付 0.97 優惠（折扣 ${res.discountPct}%）`
+          : `折扣 ${res.discountPct}%，無年付優惠`;
+
+        if (res.isTaxIncluded) {
+          postTaxBox.classList.add("highlight");
+          preTaxBox.classList.remove("highlight");
+          taxStatusNote.textContent = "目前報價基準（已勾選含稅）";
+        } else {
+          preTaxBox.classList.add("highlight");
+          postTaxBox.classList.remove("highlight");
+          taxStatusNote.textContent = "僅供參考（目前報價為未稅）";
+        }
+
+        installmentSummary.textContent = `${res.freqLabel}・共 ${res.installmentsCount} 期（基準：${res.isTaxIncluded ? "含稅總額" : "稅前總額"}）`;
+        installmentBody.innerHTML = "";
+        res.schedule.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>第 ${item.period} 期</td>
+            <td style="color: var(--text-muted); font-size: 0.82rem;">${item.note}</td>
+            <td class="num">${formatTWD(item.amount)}</td>
+          `;
+          installmentBody.appendChild(tr);
+        });
+
+        const totalTr = document.createElement("tr");
+        totalTr.className = "total-row";
+        totalTr.innerHTML = `
+          <td colspan="2">各期合計（驗證等於${res.isTaxIncluded ? "含稅" : "稅前"}總額）</td>
+          <td class="num">${formatTWD(res.activeQuoteTotal)}</td>
+        `;
+        installmentBody.appendChild(totalTr);
+
+        approvalBanner.className = "alert-box";
+        if (res.approvalStatus === "none") {
+          approvalBanner.classList.add("alert-neutral");
+          approvalTitle.textContent = "未設定核准上限（略過門檻比對）";
+          approvalDetail.textContent = `目前有效報價總額為 ${formatTWD(res.activeQuoteTotal)}（${res.isTaxIncluded ? "含稅" : "稅前"}）。若需進行內部權限檢核，請在左側填入核准上限。`;
+        } else if (res.approvalStatus === "exceeded") {
+          approvalBanner.classList.add("alert-warn");
+          approvalTitle.textContent = "⚠️ 超過核准上限 — 請停止承諾並取得核准";
+          approvalDetail.innerHTML = `報價總額 <strong>${formatTWD(res.activeQuoteTotal)}</strong> 超過設定上限 <strong>${formatTWD(res.approvalLimit)}</strong>，超出金額為 <strong>${formatTWD(res.approvalDiff)}</strong>。請立即停止對客戶承諾條件，並依內部流程申請核准。`;
+        } else {
+          approvalBanner.classList.add("alert-success");
+          approvalTitle.textContent = "✓ 未超過核准上限（在本案例上限內）";
+          approvalDetail.innerHTML = `報價總額 <strong>${formatTWD(res.activeQuoteTotal)}</strong> 未超過上限 <strong>${formatTWD(res.approvalLimit)}</strong>（尚有額度 ${formatTWD(res.approvalDiff)}）。<br><span style="font-size: 0.82rem;">※ 注意：未超過只表示在本案例上限內，不代表正式接受報價。</span>`;
+        }
+      }
+
+      // 表單送出事件
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        calculateQuote();
+      });
+
+      // 即時變動時自動重算
+      [planFeeEl, monthsEl, discountEl, paymentFreqEl, includeTaxEl, approvalLimitEl].forEach(el => {
+        el.addEventListener("input", function () {
+          if (emptyState.classList.contains("hidden")) {
+            calculateQuote();
+          }
+        });
+      });
+
+      // 清空重設按鈕
+      resetBtn.addEventListener("click", function () {
+        form.reset();
+        errorBox.classList.add("hidden");
+        resultContainer.classList.add("hidden");
+        printSingleBtn.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+        installmentBody.innerHTML = "";
+      });
+
+      // 預設測試案例快速帶入
+      document.querySelectorAll(".btn-preset").forEach(btn => {
+        btn.addEventListener("click", function () {
+          const type = this.getAttribute("data-preset");
+          if (type === "q01") {
+            planFeeEl.value = "30000";
+            monthsEl.value = "3";
+            discountEl.value = "0";
+            paymentFreqEl.value = "monthly";
+            includeTaxEl.checked = false;
+            approvalLimitEl.value = "300000";
+          } else if (type === "q04") {
+            planFeeEl.value = "60000";
+            monthsEl.value = "6";
+            discountEl.value = "17.55";
+            paymentFreqEl.value = "quarterly";
+            includeTaxEl.checked = true;
+            approvalLimitEl.value = "300000";
+          } else if (type === "tail") {
+            planFeeEl.value = "100000";
+            monthsEl.value = "3";
+            discountEl.value = "0.3333";
+            paymentFreqEl.value = "monthly";
+            includeTaxEl.checked = false;
+            approvalLimitEl.value = "";
+          } else if (type === "errAnnual") {
+            planFeeEl.value = "60000";
+            monthsEl.value = "6";
+            discountEl.value = "10";
+            paymentFreqEl.value = "annual";
+            includeTaxEl.checked = false;
+            approvalLimitEl.value = "300000";
+          } else if (type === "errDisc") {
+            planFeeEl.value = "30000";
+            monthsEl.value = "3";
+            discountEl.value = "35";
+            paymentFreqEl.value = "monthly";
+            includeTaxEl.checked = false;
+            approvalLimitEl.value = "";
+          }
+          calculateQuote();
+        });
+      });
+
+      // ================= CSV 批次處理邏輯 =================
+
+      // 簡易 CSV 列解析器（支援雙引號包覆與逗號）
+      function parseCSVLine(line) {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += ch;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      }
+
+      // 下載 CSV 範本
+      downloadTemplateBtn.addEventListener("click", function () {
+        const csvLines = [
+          "案例編號,月費,月數,折扣,付款方式,含稅,核准上限",
+          "T01,30000,3,0,quarter,是,",
+          "T02,60000,12,10,year,是,",
+          "T03,100000,6,15,year,否,300000",
+          "T04,30000,3,35,month,否,300000",
+          "T05,60000,6,17.55,quarter,是,300000",
+          "T06,30000,3,0,month,否,300000"
+        ];
+        // 加入 UTF-8 BOM (\uFEFF) 避免 Excel 開啟中文亂碼
+        const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "報價批次測試範本.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // 根據 CSV 標題列自動偵測欄位索引
+      function detectColumnMap(headerCols) {
+        const map = { id: -1, fee: -1, months: -1, discount: -1, freq: -1, tax: -1, limit: -1 };
+        headerCols.forEach((h, idx) => {
+          const key = h.toLowerCase().replace(/[\s_()（）%]/g, "");
+          if (["id", "case", "caseid", "no", "編號", "案例編號", "案例", "序號"].includes(key)) map.id = idx;
+          else if (["fee", "monthlyfee", "plan", "price", "月費", "方案", "月費方案"].includes(key)) map.fee = idx;
+          else if (["months", "month", "duration", "period", "term", "月數", "期間", "合約期間"].includes(key)) map.months = idx;
+          else if (["discount", "disc", "discountpct", "折扣", "基本折扣", "折扣率"].includes(key)) map.discount = idx;
+          else if (["freq", "frequency", "payment", "paymentfreq", "cycle", "付款方式", "繳費方式", "週期"].includes(key)) map.freq = idx;
+          else if (["tax", "includetax", "withtax", "taxincluded", "含稅", "是否含稅", "示範稅"].includes(key)) map.tax = idx;
+          else if (["limit", "approvallimit", "threshold", "cap", "核准上限", "上限", "核准門檻"].includes(key)) map.limit = idx;
+        });
+
+        // 若無法從標題辨識核心欄位，依欄位總數採取預設對應（>=7欄含編號，否則不含編號）
+        if (map.fee === -1 && map.months === -1) {
+          if (headerCols.length >= 7) {
+            return { id: 0, fee: 1, months: 2, discount: 3, freq: 4, tax: 5, limit: 6 };
+          }
+          return { id: -1, fee: 0, months: 1, discount: 2, freq: 3, tax: 4, limit: 5 };
+        }
+        return map;
+      }
+
+      // 讀取並處理上傳的 CSV 檔案
+      csvFileInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const text = event.target.result.replace(/^\uFEFF/, ""); // 移除可能存在的 BOM
+          const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+
+          if (lines.length < 2) {
+            batchTableBody.innerHTML = `<tr><td colspan="7" style="color: var(--danger-text); font-weight: 600;">CSV 檔案內容不足，請確認包含標題列與至少一筆資料列。</td></tr>`;
+            batchResultArea.classList.remove("hidden");
+            exportCsvBtn.classList.add("hidden");
+            return;
+          }
+
+          const headerCols = parseCSVLine(lines[0]);
+          const colMap = detectColumnMap(headerCols);
+
+          latestBatchResults = [];
+          let validCount = 0;
+          let exceededCount = 0;
+          let invalidCount = 0;
+
+          // 略過第 0 列標題，從第 1 列開始處理
+          for (let i = 1; i < lines.length; i++) {
+            const cols = parseCSVLine(lines[i]);
+            const caseId = colMap.id !== -1 ? (cols[colMap.id] ?? "") : "";
+            const rawInput = {
+              rawFee: colMap.fee !== -1 ? (cols[colMap.fee] ?? "") : "",
+              rawMonths: colMap.months !== -1 ? (cols[colMap.months] ?? "") : "",
+              rawDiscount: colMap.discount !== -1 ? (cols[colMap.discount] ?? "") : "",
+              rawFreq: colMap.freq !== -1 ? (cols[colMap.freq] ?? "") : "",
+              rawTax: colMap.tax !== -1 ? (cols[colMap.tax] ?? "") : "",
+              rawLimit: colMap.limit !== -1 ? (cols[colMap.limit] ?? "") : ""
+            };
+
+            const evalRes = evaluateQuote(rawInput);
+            if (!evalRes.valid) {
+              invalidCount++;
+            } else {
+              validCount++;
+              if (evalRes.approvalStatus === "exceeded") {
+                exceededCount++;
+              }
+            }
+
+            latestBatchResults.push({
+              rowNum: i + 1,
+              caseId,
+              rawInput,
+              evalRes
+            });
+          }
+
+          renderBatchResults(validCount, exceededCount, invalidCount);
+        };
+        reader.readAsText(file, "UTF-8");
+      });
+
+      // 渲染批次處理結果表格
+      function renderBatchResults(validCount, exceededCount, invalidCount) {
+        batchStats.innerHTML = `
+          <span class="stat-pill">總處理筆數：${latestBatchResults.length} 筆</span>
+          <span class="stat-pill ok">有效報價：${validCount} 筆</span>
+          <span class="stat-pill warn">超過核准上限：${exceededCount} 筆</span>
+          <span class="stat-pill err">無效輸入：${invalidCount} 筆</span>
+        `;
+
+        batchTableBody.innerHTML = "";
+        latestBatchResults.forEach(row => {
+          const { rowNum, caseId, rawInput, evalRes } = row;
+          const tr = document.createElement("tr");
+          const rowLabel = caseId ? `第 ${rowNum} 列 (<strong>${caseId}</strong>)` : `第 ${rowNum} 列`;
+          const inputSummary = `月費:${rawInput.rawFee || "空"} / ${rawInput.rawMonths || "空"}月 / 折${rawInput.rawDiscount || "0"}% / ${rawInput.rawFreq || "空"} / ${rawInput.rawTax || "未稅"}`;
+
+          if (!evalRes.valid) {
+            tr.innerHTML = `
+              <td>${rowLabel}</td>
+              <td style="font-size: 0.82rem;">${inputSummary}</td>
+              <td><span class="badge-status badge-err">無效報價</span></td>
+              <td class="num">-</td>
+              <td class="num">-</td>
+              <td style="color: var(--text-muted);">-</td>
+              <td style="color: var(--danger-text); font-size: 0.85rem;">${evalRes.error}</td>
+            `;
+          } else {
+            const scheduleText = evalRes.schedule.map(s => `第${s.period}期:${s.amount.toLocaleString("zh-TW")}`).join("、");
+            let statusHtml = "";
+            if (evalRes.approvalStatus === "none") {
+              statusHtml = `<span class="badge-status badge-neutral">未設上限</span>`;
+            } else if (evalRes.approvalStatus === "exceeded") {
+              statusHtml = `<span class="badge-status badge-warn">⚠️ 超出 ${formatTWD(evalRes.approvalDiff)}（上限 ${evalRes.approvalLimit.toLocaleString("zh-TW")}）</span>`;
+            } else {
+              statusHtml = `<span class="badge-status badge-ok">✓ 上限內（餘 ${formatTWD(evalRes.approvalDiff)}）</span>`;
+            }
+
+            tr.innerHTML = `
+              <td>${rowLabel}</td>
+              <td style="font-size: 0.82rem;">${inputSummary}</td>
+              <td><span class="badge-status badge-ok">有效</span></td>
+              <td class="num">${formatTWD(evalRes.preTaxTotal)}</td>
+              <td class="num">${formatTWD(evalRes.postTaxTotal)}</td>
+              <td style="font-size: 0.82rem;">${evalRes.freqLabel}${evalRes.installmentsCount}期（${scheduleText}）</td>
+              <td>${statusHtml}</td>
+            `;
+          }
+          batchTableBody.appendChild(tr);
+        });
+
+        batchResultArea.classList.remove("hidden");
+        exportCsvBtn.classList.remove("hidden");
+        printBatchBtn.classList.remove("hidden");
+      }
+
+      // 匯出批次處理結果為 CSV
+      exportCsvBtn.addEventListener("click", function () {
+        if (latestBatchResults.length === 0) return;
+
+        const headers = [
+          "CSV列號", "案例編號", "輸入月費", "輸入月數", "輸入折扣(%)", "輸入付款方式", "輸入含稅", "核准上限",
+          "檢核結果", "稅前總額", "含稅總額", "採計報價基準", "分期明細", "核准狀態與說明"
+        ];
+
+        const escapeCSV = (val) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+
+        const rows = latestBatchResults.map(row => {
+          const { rowNum, caseId, rawInput, evalRes } = row;
+          if (!evalRes.valid) {
+            return [
+              rowNum, caseId, rawInput.rawFee, rawInput.rawMonths, rawInput.rawDiscount, rawInput.rawFreq, rawInput.rawTax, rawInput.rawLimit,
+              "無效", "", "", "", "", evalRes.error
+            ].map(escapeCSV).join(",");
+          }
+
+          const scheduleText = evalRes.schedule.map(s => `第${s.period}期:${s.amount}`).join(" | ");
+          let statusText = "未設定核准上限";
+          if (evalRes.approvalStatus === "exceeded") {
+            statusText = `超過核准上限（超出 ${evalRes.approvalDiff} 元，請停止承諾並取得核准）`;
+          } else if (evalRes.approvalStatus === "within") {
+            statusText = `未超過核准上限（尚餘 ${evalRes.approvalDiff} 元，僅表示在本案例上限內，不代表正式接受報價）`;
+          }
+
+          return [
+            rowNum, caseId, evalRes.fee, evalRes.months, evalRes.discountPct, evalRes.freqLabel, evalRes.isTaxIncluded ? "是" : "否", evalRes.approvalLimit ?? "",
+            "有效", evalRes.preTaxTotal, evalRes.postTaxTotal, evalRes.activeQuoteTotal, scheduleText, statusText
+          ].map(escapeCSV).join(",");
+        });
+
+        const csvContent = "\uFEFF" + [headers.map(escapeCSV).join(","), ...rows].join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "批次報價檢核結果.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>
